@@ -2,29 +2,36 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/GolangUnited/helloweb/internal/controllers"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
-
-/**
-Please note Start functions is a placeholder for you to start your own solution.
-Feel free to drop gorilla.mux if you want and use any other solution available.
-
-main function reads host/port from env just for an example, flavor it following your taste
-*/
 
 // Start /** Starts the web server listener on given host and port.
 func Start(host string, port int) {
-	router := mux.NewRouter()
+	r := chi.NewRouter()
 
-	log.Println(fmt.Printf("Starting API server on %s:%d\n", host, port))
-	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), router); err != nil {
-		log.Fatal(err)
+	setupMiddleware(r)
+
+	r.Get("/name/{PARAM}", controllers.NameHandler)
+	r.Get("/bad", controllers.BadHandler)
+	r.Post("/data", controllers.DataHandler)
+	r.Post("/headers", controllers.HeadersHandler)
+
+	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), r); err != nil {
+		panic(err)
 	}
+}
+
+func setupMiddleware(r *chi.Mux) {
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 }
 
 //main /** starts program, gets HOST:PORT param and calls Start func.
