@@ -1,0 +1,14 @@
+GET http://localhost:8081/name/PARAM
+
+###
+GET http://localhost:8081/bad
+
+###
+POST http://localhost:8081/data
+
+PARAM
+
+###
+POST http://localhost:8081/headers
+a: 2
+b: 3
