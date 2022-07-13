@@ -1,4 +1,4 @@
-odule github.com/GolangUnited/helloweb
+module github.com/GolangUnited/helloweb
 
 go 1.17
 
