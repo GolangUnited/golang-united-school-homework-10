@@ -14,6 +14,7 @@ import (
 /**
 Please note Start functions is a placeholder for you to start your own solution.
 Feel free to drop gorilla.mux if you want and use any other solution available.
+
 main function reads host/port from env just for an example, flavor it following your taste
 */
 
@@ -63,4 +64,4 @@ func PostHeaders(resp http.ResponseWriter, req *http.Request) {
 	r := intA + intB
 	resp.Header().Set("a+b", strconv.Itoa(r))
 	resp.WriteHeader(http.StatusOK)
-} 
+}
