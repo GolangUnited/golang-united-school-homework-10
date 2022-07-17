@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -10,45 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 )
-
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-}
-
-func nameHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	name := vars["name"]
-	if name == "" {
-		name = "Anonymous"
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
-}
-
-func badHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusInternalServerError)
-}
-
-func dataHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("I got message:\n%s", body)))
-}
-
-func headerHandler(w http.ResponseWriter, r *http.Request) {
-	a, err := strconv.Atoi(r.Header.Get("a"))
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	b, err := strconv.Atoi(r.Header.Get("b"))
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	w.Header().Set("a+b", strconv.Itoa(a+b))
-}
 
 /**
 Please note Start functions is a placeholder for you to start your own solution.
@@ -58,13 +18,7 @@ main function reads host/port from env just for an example, flavor it following 
 
 // Start /** Starts the web server listener on given host and port.
 func Start(host string, port int) {
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", rootHandler).Methods(http.MethodGet)
-	router.HandleFunc("/name", nameHandler).Methods(http.MethodGet)
-	router.HandleFunc("/name/{name}", nameHandler).Methods(http.MethodGet)
-	router.HandleFunc("/bad", badHandler).Methods(http.MethodGet)
-	router.HandleFunc("/data", dataHandler).Methods(http.MethodPost)
-	router.HandleFunc("/headers", headerHandler).Methods(http.MethodPost)
+	router := mux.NewRouter()
 
 	log.Println(fmt.Printf("Starting API server on %s:%d\n", host, port))
 	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), router); err != nil {
@@ -81,4 +35,3 @@ func main() {
 	}
 	Start(host, port)
 }
-\n
