@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -12,50 +11,43 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func handleNameParam(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	param := params["PARAM"]
-	fmt.Fprintf(w, "Hello, "+param+"!")
-
-	return
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
 
-func handleBadParam(w http.ResponseWriter, r *http.Request) {
+func nameHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name := vars["name"]
+	if name == "" {
+		name = "Anonymous"
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Hello, %s!", name)))
+}
+
+func badHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
-
-	return
 }
 
-func handdleBodyParam(w http.ResponseWriter, r *http.Request) {
-	data, err := io.ReadAll(r.Body)
-
+func dataHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		errors.New("something went wrong with http response")
-		return
+		w.WriteHeader(http.StatusInternalServerError)
 	}
-
-	fmt.Fprintf(w, "I got message:\n"+string(data))
-
-	return
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("I got message:\n%s", body)))
 }
 
-func handleHeadersParam(w http.ResponseWriter, r *http.Request) {
-	hdrA := r.Header.Get("a")
-	hdrB := r.Header.Get("b")
-
-	if hdrA == "" || hdrB == "" {
-		errors.New("No available header!")
-		return
+func headerHandler(w http.ResponseWriter, r *http.Request) {
+	a, err := strconv.Atoi(r.Header.Get("a"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
-
-	res1, e1 := strconv.Atoi(hdrA)
-	res2, e2 := strconv.Atoi(hdrB)
-
-	if e1 == nil && e2 == nil {
-		w.Header().Set("a+b", strconv.Itoa(res1+res2))
+	b, err := strconv.Atoi(r.Header.Get("b"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
-
-	return
+	w.Header().Set("a+b", strconv.Itoa(a+b))
 }
 
 /**
@@ -66,12 +58,13 @@ main function reads host/port from env just for an example, flavor it following 
 
 // Start /** Starts the web server listener on given host and port.
 func Start(host string, port int) {
-	router := mux.NewRouter()
-
-	router.HandleFunc("/name/{PARAM}", handleNameParam).Methods(http.MethodGet)
-	router.HandleFunc("/bad", handleBadParam).Methods(http.MethodGet)
-	router.HandleFunc("/data", handdleBodyParam).Methods(http.MethodPost)
-	router.HandleFunc("/headers", handleHeadersParam).Methods(http.MethodPost)
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", rootHandler).Methods(http.MethodGet)
+	router.HandleFunc("/name", nameHandler).Methods(http.MethodGet)
+	router.HandleFunc("/name/{name}", nameHandler).Methods(http.MethodGet)
+	router.HandleFunc("/bad", badHandler).Methods(http.MethodGet)
+	router.HandleFunc("/data", dataHandler).Methods(http.MethodPost)
+	router.HandleFunc("/headers", headerHandler).Methods(http.MethodPost)
 
 	log.Println(fmt.Printf("Starting API server on %s:%d\n", host, port))
 	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), router); err != nil {
